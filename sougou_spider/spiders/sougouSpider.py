@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import scrapy
-from ..pipelines import SougouSpiderPipeline
+from ..items import SougouSpiderItem
 
 class SougouspiderSpider(scrapy.Spider):
     name = 'sougouSpider'
@@ -29,7 +29,7 @@ class SougouspiderSpider(scrapy.Spider):
         for url_item in result.extract():
             url=baseUrl+url_item
             print(url)
-            # yield scrapy.Request(url=url,headers=headers,callback=self.parse_detail_age)
+            yield scrapy.Request(url=url,headers=headers,callback=self.parse_detail_age)
 
         self.offset+=1
         next_page_url=self.base_url.format(str(self.offset))
@@ -44,12 +44,17 @@ class SougouspiderSpider(scrapy.Spider):
 
     def parse_detail_age(self,response):
 
-        items=dict()
+        items=SougouSpiderItem()
+
+        # 解析页面中的内容
         question=response.xpath("//div[@class='main']/div/h1/span/text()").extract()
         answer=response.xpath("//*[@id='bestAnswers']/div/div[2]/pre").extract()
 
-        items['title']=question
-        items['content']=answer
-        print(items)
+        if answer!=None:
+
+            items['question']=question
+            items['answer']=answer
+            return items
+        return None
 
 
